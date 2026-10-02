@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DatabaseCreator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api-geo-cl</a> &gt; <a href="index.source.html" class="el_package">cl.felruiz.apigeocl.config</a> &gt; <span class="el_source">DatabaseCreator.java</span></div><h1>DatabaseCreator.java</h1><pre class="source lang-java linenums">package cl.felruiz.apigeocl.config;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.logging.Log;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.env.EnvironmentPostProcessor;
+import org.springframework.boot.logging.DeferredLogFactory;
+import org.springframework.core.Ordered;
+import org.springframework.core.env.ConfigurableEnvironment;
+
+/**
+ * Crea la base de datos PostgreSQL si aún no existe, antes de que Spring
+ * inicialice el DataSource y Flyway.
+ *
+ * Se conecta a la base de mantenimiento &quot;postgres&quot; del mismo servidor con las
+ * credenciales configuradas y ejecuta CREATE DATABASE si hace falta. Si no
+ * puede (sin permisos, servidor caído), solo deja un warning y el arranque
+ * sigue su curso normal.
+ *
+ * Se registra en META-INF/spring.factories.
+ */
+public class DatabaseCreator implements EnvironmentPostProcessor, Ordered {
+
+  /** jdbc:postgresql://host:puerto/nombre_bd?parametros */
+<span class="fc" id="L33">  private static final Pattern POSTGRES_URL = Pattern.compile(&quot;^(jdbc:postgresql://[^/]+/)([^?;]+)(.*)$&quot;);</span>
+
+  private final Log log;
+
+<span class="fc" id="L37">  public DatabaseCreator(DeferredLogFactory logFactory) {</span>
+<span class="fc" id="L38">    this.log = logFactory.getLog(DatabaseCreator.class);</span>
+<span class="fc" id="L39">  }</span>
+
+  @Override
+  public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+<span class="pc bpc" id="L43" title="1 of 2 branches missed.">    if (!environment.getProperty(&quot;app.database.auto-create&quot;, Boolean.class, true)) {</span>
+<span class="nc" id="L44">      return;</span>
+    }
+
+<span class="fc" id="L47">    String url = environment.getProperty(&quot;spring.datasource.url&quot;);</span>
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">    if (url == null) {</span>
+<span class="nc" id="L49">      return;</span>
+    }
+
+<span class="fc" id="L52">    Matcher matcher = POSTGRES_URL.matcher(url);</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">    if (!matcher.matches()) {</span>
+<span class="fc" id="L54">      return; // No es PostgreSQL (ej. H2 en tests)</span>
+    }
+
+<span class="fc" id="L57">    String dbName = matcher.group(2);</span>
+<span class="fc" id="L58">    String adminUrl = matcher.group(1) + &quot;postgres&quot; + matcher.group(3);</span>
+    String username;
+    String password;
+    try {
+<span class="nc" id="L62">      username = environment.getProperty(&quot;spring.datasource.username&quot;);</span>
+<span class="nc" id="L63">      password = environment.getProperty(&quot;spring.datasource.password&quot;);</span>
+<span class="fc" id="L64">    } catch (IllegalArgumentException e) {</span>
+<span class="fc" id="L65">      return; // Credenciales sin definir (ej. CI sin .env): nada que crear</span>
+<span class="nc" id="L66">    }</span>
+
+<span class="nc" id="L68">    try (Connection connection = DriverManager.getConnection(adminUrl, username, password)) {</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">      if (exists(connection, dbName)) {</span>
+<span class="nc" id="L70">        return;</span>
+      }
+<span class="nc" id="L72">      try (Statement statement = connection.createStatement()) {</span>
+<span class="nc" id="L73">        statement.executeUpdate(&quot;CREATE DATABASE &quot; + quoteIdentifier(dbName));</span>
+      }
+<span class="nc" id="L75">      log.info(&quot;Base de datos '&quot; + dbName + &quot;' creada&quot;);</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">    } catch (SQLException e) {</span>
+<span class="nc" id="L77">      log.warn(&quot;No se pudo verificar/crear la base de datos '&quot; + dbName + &quot;': &quot; + e.getMessage());</span>
+<span class="nc" id="L78">    }</span>
+<span class="nc" id="L79">  }</span>
+
+  private static boolean exists(Connection connection, String dbName) throws SQLException {
+<span class="nc" id="L82">    try (PreparedStatement statement = connection.prepareStatement(&quot;SELECT 1 FROM pg_database WHERE datname = ?&quot;)) {</span>
+<span class="nc" id="L83">      statement.setString(1, dbName);</span>
+<span class="nc" id="L84">      try (ResultSet resultSet = statement.executeQuery()) {</span>
+<span class="nc" id="L85">        return resultSet.next();</span>
+      }
+    }
+  }
+
+  private static String quoteIdentifier(String identifier) {
+<span class="nc" id="L91">    return &quot;\&quot;&quot; + identifier.replace(&quot;\&quot;&quot;, &quot;\&quot;\&quot;&quot;) + &quot;\&quot;&quot;;</span>
+  }
+
+  /** Después de ConfigDataEnvironmentPostProcessor, para leer application.yaml y .env */
+  @Override
+  public int getOrder() {
+<span class="fc" id="L97">    return Ordered.LOWEST_PRECEDENCE;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
