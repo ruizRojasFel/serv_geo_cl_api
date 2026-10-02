@@ -4,6 +4,8 @@
 
 *API REST en Spring Boot con datos geopolíticos de Chile: **regiones, provincias y comunas**.*
 
+[![Website](https://img.shields.io/badge/Próximamente-sitio.web-lightblue)](https://github.com/ruizRojasFel) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/ruizRojasFel/serv_geo_cl_api?tab=MIT-1-ov-file)
+
 </div>
 
 <br>
