@@ -19,6 +19,7 @@ Expone la división político-administrativa de Chile a través de endpoints RES
 - Java 17
 - Spring Boot 3.5.13 (Web, Data JPA, Validation)
 - PostgreSQL
+- Flyway
 - OpenAPI/Swagger (`springdoc-openapi`)
 - Maven
 - Docker / Docker Compose
@@ -32,7 +33,7 @@ Expone la división político-administrativa de Chile a través de endpoints RES
   - provincia → comunas
   - región → comunas (por nombre de región)
 - Manejo global de errores en JSON
-- Datos semilla en `data.sql`:
+- Esquema y datos versionados con Flyway (`src/main/resources/db/migration`):
   - 16 regiones
   - 56 provincias
   - 346 comunas
@@ -104,15 +105,24 @@ Servicios:
 
 ## Ejecutar local (sin Docker)
 
-Requisitos: Java 17, PostgreSQL y base creada (por defecto `db_api_geo_cl`).
-
-Exporta variables para `application.yaml`:
+Requisitos: Java 17 y un servidor PostgreSQL en `localhost:5432` con el usuario de `.env` creado.
 
 ```bash
-export DB_USERNAME=user_api_geo_cl
-export DB_PASSWORD=pass_api_geo_cl_2026
+cp .env.example .env   # si aún no existe; completa DB_NAME, DB_USER y DB_PASSWORD
 ./mvnw spring-boot:run
 ```
+
+La app lee `.env` automáticamente (las variables de entorno tienen prioridad). Host y puerto se pueden cambiar con `DB_HOST` y `DB_PORT`.
+
+## Base de datos
+
+Al arrancar, tanto con Docker Compose como con `./mvnw spring-boot:run`:
+
+1. **Base de datos**: si `DB_NAME` no existe, se crea automáticamente (`DatabaseCreator`). En Docker la crea además el contenedor de PostgreSQL. Si el usuario no tiene permiso `CREATEDB`, se registra un warning y hay que crearla a mano.
+2. **Esquema y datos**: Flyway aplica las migraciones pendientes de `db/migration` (`V1__crear_esquema.sql`, `V2__datos_iniciales.sql`). Cada una corre una sola vez, por lo que los datos persisten entre reinicios (y en el volumen `postgres_data`).
+3. **Validación**: Hibernate (`ddl-auto: validate`) verifica que el esquema coincida con las entidades.
+
+Para cambiar el esquema o los datos, agrega una nueva migración (`V3__...sql`); no edites las ya aplicadas.
 
 ## Tests y cobertura
 

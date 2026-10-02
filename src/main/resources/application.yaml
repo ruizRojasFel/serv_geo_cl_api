@@ -5,22 +5,28 @@ spring:
   application:
     name: api-geo-cl
 
+  # Lee DB_NAME, DB_USER y DB_PASSWORD desde .env (mismo archivo que usa
+  # Docker Compose). Las variables de entorno tienen prioridad sobre .env.
+  config:
+    import: optional:file:.env[.properties]
+
   # ===================================================
   # BASE DE DATOS
   # ===================================================
+  # Si la base no existe, DatabaseCreator la crea al arrancar.
   datasource:
-    url: jdbc:postgresql://localhost:5432/db_api_geo_cl
-    username: ${DB_USERNAME}
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:db_api_geo_cl}
+    username: ${DB_USER}
     password: ${DB_PASSWORD}
 
   # ===================================================
   # JPA / HIBERNATE
   # ===================================================
+  # El esquema lo gestiona Flyway; Hibernate solo valida que coincida.
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: create-drop
-    defer-datasource-initialization: true
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
@@ -28,11 +34,13 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   # ===================================================
-  # DATOS INICIALES
+  # MIGRACIONES (esquema + datos iniciales)
   # ===================================================
-  sql:
-    init:
-      mode: always
+  # Scripts en src/main/resources/db/migration. Cada uno se aplica una sola
+  # vez, por lo que los datos persisten entre reinicios.
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 
 # =====================================================
 # SERVIDOR

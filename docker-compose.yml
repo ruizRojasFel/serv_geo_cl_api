@@ -36,15 +36,11 @@ services:
     ports:
       - "8080:8080"
     environment:
-      # Spring Boot lee estas variables de entorno
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME}
-      SPRING_DATASOURCE_USERNAME: ${DB_USER}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
-      SPRING_JPA_SHOW_SQL: "true"
-      SPRING_JPA_OPEN_IN_VIEW: "false"
-      SPRING_SQL_INIT_MODE: always
-      SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
+      # Mismas variables que lee application.yaml; solo cambia el host
+      DB_HOST: db
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
     depends_on:
       db:
         # Espera a que PostgreSQL esté listo antes de iniciar la app

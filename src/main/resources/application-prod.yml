@@ -1,7 +1,8 @@
+# Flyway crea el esquema y carga los datos en el primer arranque;
+# DatabaseCreator crea la base si el usuario tiene permisos para hacerlo.
 spring:
   jpa:
-    hibernate:
-      ddl-auto: validate
-  sql:
-    init:
-      mode: never
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
