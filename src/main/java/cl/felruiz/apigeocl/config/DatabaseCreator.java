@@ -56,8 +56,14 @@ public class DatabaseCreator implements EnvironmentPostProcessor, Ordered {
 
     String dbName = matcher.group(2);
     String adminUrl = matcher.group(1) + "postgres" + matcher.group(3);
-    String username = environment.getProperty("spring.datasource.username");
-    String password = environment.getProperty("spring.datasource.password");
+    String username;
+    String password;
+    try {
+      username = environment.getProperty("spring.datasource.username");
+      password = environment.getProperty("spring.datasource.password");
+    } catch (IllegalArgumentException e) {
+      return; // Credenciales sin definir (ej. CI sin .env): nada que crear
+    }
 
     try (Connection connection = DriverManager.getConnection(adminUrl, username, password)) {
       if (exists(connection, dbName)) {
