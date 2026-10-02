@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import cl.felruiz.apigeocl.dto.ErrorDTO;
 
@@ -22,8 +23,9 @@ import cl.felruiz.apigeocl.dto.ErrorDTO;
  *
  * Orden de los handlers:
  *   1. handleNotFound      → 404 (recurso no encontrado)
- *   2. handleMissingParam  → 400 (parámetro requerido faltante)
- *   3. handleGeneral       → 500 (cualquier otro error no controlado)
+ *   2. handleNoResource    → 404 (ruta inexistente)
+ *   3. handleMissingParam  → 400 (parámetro requerido faltante)
+ *   4. handleGeneral       → 500 (cualquier otro error no controlado)
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -37,6 +39,22 @@ public class GlobalExceptionHandler {
       .status(HttpStatus.NOT_FOUND.value())
       .error("Not Found")
       .mensaje(ex.getMessage())
+      .timestamp(LocalDateTime.now())
+      .build();
+
+    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+  }
+
+  /**
+   * Captura rutas que no existen (ej. "/" o "/api/v1/xyz") → devuelve HTTP 404.
+   * Sin esto, handleGeneral las convertiría en 500.
+   */
+  @ExceptionHandler(NoResourceFoundException.class)
+  public ResponseEntity<ErrorDTO> handleNoResource(NoResourceFoundException ex) {
+    ErrorDTO error = ErrorDTO.builder()
+      .status(HttpStatus.NOT_FOUND.value())
+      .error("Not Found")
+      .mensaje("Ruta '/" + ex.getResourcePath() + "' no encontrada")
       .timestamp(LocalDateTime.now())
       .build();
 
