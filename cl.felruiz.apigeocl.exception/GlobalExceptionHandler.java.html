@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import cl.felruiz.apigeocl.dto.ErrorDTO;
 
@@ -22,25 +23,42 @@ import cl.felruiz.apigeocl.dto.ErrorDTO;
  *
  * Orden de los handlers:
  *   1. handleNotFound      → 404 (recurso no encontrado)
- *   2. handleMissingParam  → 400 (parámetro requerido faltante)
- *   3. handleGeneral       → 500 (cualquier otro error no controlado)
+ *   2. handleNoResource    → 404 (ruta inexistente)
+ *   3. handleMissingParam  → 400 (parámetro requerido faltante)
+ *   4. handleGeneral       → 500 (cualquier otro error no controlado)
  */
 @RestControllerAdvice
-<span class="fc" id="L29">public class GlobalExceptionHandler {</span>
+<span class="fc" id="L31">public class GlobalExceptionHandler {</span>
 
   /**
    * Captura ResourceNotFoundException → devuelve HTTP 404.
    */
   @ExceptionHandler(ResourceNotFoundException.class)
   public ResponseEntity&lt;ErrorDTO&gt; handleNotFound(ResourceNotFoundException ex) {
-<span class="fc" id="L36">    ErrorDTO error = ErrorDTO.builder()</span>
-<span class="fc" id="L37">      .status(HttpStatus.NOT_FOUND.value())</span>
-<span class="fc" id="L38">      .error(&quot;Not Found&quot;)</span>
-<span class="fc" id="L39">      .mensaje(ex.getMessage())</span>
-<span class="fc" id="L40">      .timestamp(LocalDateTime.now())</span>
-<span class="fc" id="L41">      .build();</span>
+<span class="fc" id="L38">    ErrorDTO error = ErrorDTO.builder()</span>
+<span class="fc" id="L39">      .status(HttpStatus.NOT_FOUND.value())</span>
+<span class="fc" id="L40">      .error(&quot;Not Found&quot;)</span>
+<span class="fc" id="L41">      .mensaje(ex.getMessage())</span>
+<span class="fc" id="L42">      .timestamp(LocalDateTime.now())</span>
+<span class="fc" id="L43">      .build();</span>
 
-<span class="fc" id="L43">    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);</span>
+<span class="fc" id="L45">    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);</span>
+  }
+
+  /**
+   * Captura rutas que no existen (ej. &quot;/&quot; o &quot;/api/v1/xyz&quot;) → devuelve HTTP 404.
+   * Sin esto, handleGeneral las convertiría en 500.
+   */
+  @ExceptionHandler(NoResourceFoundException.class)
+  public ResponseEntity&lt;ErrorDTO&gt; handleNoResource(NoResourceFoundException ex) {
+<span class="fc" id="L54">    ErrorDTO error = ErrorDTO.builder()</span>
+<span class="fc" id="L55">      .status(HttpStatus.NOT_FOUND.value())</span>
+<span class="fc" id="L56">      .error(&quot;Not Found&quot;)</span>
+<span class="fc" id="L57">      .mensaje(&quot;Ruta '/&quot; + ex.getResourcePath() + &quot;' no encontrada&quot;)</span>
+<span class="fc" id="L58">      .timestamp(LocalDateTime.now())</span>
+<span class="fc" id="L59">      .build();</span>
+
+<span class="fc" id="L61">    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);</span>
   }
 
   /**
@@ -48,14 +66,14 @@ import cl.felruiz.apigeocl.dto.ErrorDTO;
    */
   @ExceptionHandler(MissingServletRequestParameterException.class)
   public ResponseEntity&lt;ErrorDTO&gt; handleMissingParam(MissingServletRequestParameterException ex) {
-<span class="fc" id="L51">    ErrorDTO error = ErrorDTO.builder()</span>
-<span class="fc" id="L52">      .status(HttpStatus.BAD_REQUEST.value())</span>
-<span class="fc" id="L53">      .error(&quot;Bad Request&quot;)</span>
-<span class="fc" id="L54">      .mensaje(&quot;Parámetro requerido '&quot; + ex.getParameterName() + &quot;' no encontrado&quot;)</span>
-<span class="fc" id="L55">      .timestamp(LocalDateTime.now())</span>
-<span class="fc" id="L56">      .build();</span>
+<span class="fc" id="L69">    ErrorDTO error = ErrorDTO.builder()</span>
+<span class="fc" id="L70">      .status(HttpStatus.BAD_REQUEST.value())</span>
+<span class="fc" id="L71">      .error(&quot;Bad Request&quot;)</span>
+<span class="fc" id="L72">      .mensaje(&quot;Parámetro requerido '&quot; + ex.getParameterName() + &quot;' no encontrado&quot;)</span>
+<span class="fc" id="L73">      .timestamp(LocalDateTime.now())</span>
+<span class="fc" id="L74">      .build();</span>
 
-<span class="fc" id="L58">    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);</span>
+<span class="fc" id="L76">    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);</span>
   }
 
   /**
@@ -64,14 +82,14 @@ import cl.felruiz.apigeocl.dto.ErrorDTO;
    */
   @ExceptionHandler(Exception.class)
   public ResponseEntity&lt;ErrorDTO&gt; handleGeneral(Exception ex) {
-<span class="fc" id="L67">    ErrorDTO error = ErrorDTO.builder()</span>
-<span class="fc" id="L68">      .status(HttpStatus.INTERNAL_SERVER_ERROR.value())</span>
-<span class="fc" id="L69">      .error(&quot;Internal Server Error&quot;)</span>
-<span class="fc" id="L70">      .mensaje(&quot;Ocurrió un error inesperado&quot;)</span>
-<span class="fc" id="L71">      .timestamp(LocalDateTime.now())</span>
-<span class="fc" id="L72">      .build();</span>
+<span class="fc" id="L85">    ErrorDTO error = ErrorDTO.builder()</span>
+<span class="fc" id="L86">      .status(HttpStatus.INTERNAL_SERVER_ERROR.value())</span>
+<span class="fc" id="L87">      .error(&quot;Internal Server Error&quot;)</span>
+<span class="fc" id="L88">      .mensaje(&quot;Ocurrió un error inesperado&quot;)</span>
+<span class="fc" id="L89">      .timestamp(LocalDateTime.now())</span>
+<span class="fc" id="L90">      .build();</span>
 
-<span class="fc" id="L74">    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);</span>
+<span class="fc" id="L92">    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
