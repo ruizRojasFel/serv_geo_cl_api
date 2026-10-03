@@ -42,12 +42,20 @@ jobs:
           path: target/site/jacoco/
           retention-days: 7
 
-      - name: Deploy Jacoco to GitHub Pages
+      # Cobertura en la raíz y Swagger UI en /swagger (openapi.json lo genera OpenApiDocsExportTest)
+      - name: Assemble GitHub Pages site
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p target/pages/swagger
+          cp -r target/site/jacoco/. target/pages/
+          cp docs/swagger/index.html target/swagger/openapi.json target/pages/swagger/
+
+      - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         if: github.ref == 'refs/heads/main'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./target/site/jacoco
+          publish_dir: ./target/pages
 
   build-docker:
     name: Build Docker Image

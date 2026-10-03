@@ -76,6 +76,7 @@ Ejemplo de error:
 
 - UI: `http://localhost:8080/swagger-ui/index.html`
 - Docs JSON: `http://localhost:8080/v3/api-docs`
+- Publicado (GitHub Pages): https://ruizrojasfel.github.io/serv_geo_cl_api/swagger/
 
 ## Ejecutar con Docker Compose (recomendado)
 
@@ -156,6 +157,7 @@ En `main`:
 - `http://localhost:8080`
 - `http://localhost:3001`
 - `https://mymicroservicesfel.vercel.app`
+- `https://ruizrojasfel.github.io`
 
 ---
 
