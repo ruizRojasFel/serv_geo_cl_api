@@ -66,13 +66,12 @@ public class DatabaseCreator implements EnvironmentPostProcessor, Ordered {
     }
 
     try (Connection connection = DriverManager.getConnection(adminUrl, username, password)) {
-      if (exists(connection, dbName)) {
-        return;
+      if (!exists(connection, dbName)) {
+        try (Statement statement = connection.createStatement()) {
+          statement.executeUpdate("CREATE DATABASE " + quoteIdentifier(dbName));
+        }
+        log.info("Base de datos '" + dbName + "' creada");
       }
-      try (Statement statement = connection.createStatement()) {
-        statement.executeUpdate("CREATE DATABASE " + quoteIdentifier(dbName));
-      }
-      log.info("Base de datos '" + dbName + "' creada");
     } catch (SQLException e) {
       log.warn("No se pudo verificar/crear la base de datos '" + dbName + "': " + e.getMessage());
     }
