@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import cl.felruiz.apigeocl.dto.ErrorDTO;
@@ -24,7 +24,7 @@ import cl.felruiz.apigeocl.dto.ErrorDTO;
  * Orden de los handlers:
  *   1. handleNotFound      → 404 (recurso no encontrado)
  *   2. handleNoResource    → 404 (ruta inexistente)
- *   3. handleMissingParam  → 400 (parámetro requerido faltante)
+ *   3. handleTypeMismatch  → 400 (parámetro con tipo inválido, ej. id no numérico)
  *   4. handleGeneral       → 500 (cualquier otro error no controlado)
  */
 @RestControllerAdvice
@@ -62,14 +62,14 @@ import cl.felruiz.apigeocl.dto.ErrorDTO;
   }
 
   /**
-   * Captura parámetros requeridos faltantes → devuelve HTTP 400.
+   * Captura parámetros con tipo inválido (ej. &quot;/api/v1/regiones/abc/comunas&quot;) → devuelve HTTP 400.
    */
-  @ExceptionHandler(MissingServletRequestParameterException.class)
-  public ResponseEntity&lt;ErrorDTO&gt; handleMissingParam(MissingServletRequestParameterException ex) {
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity&lt;ErrorDTO&gt; handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
 <span class="fc" id="L69">    ErrorDTO error = ErrorDTO.builder()</span>
 <span class="fc" id="L70">      .status(HttpStatus.BAD_REQUEST.value())</span>
 <span class="fc" id="L71">      .error(&quot;Bad Request&quot;)</span>
-<span class="fc" id="L72">      .mensaje(&quot;Parámetro requerido '&quot; + ex.getParameterName() + &quot;' no encontrado&quot;)</span>
+<span class="fc" id="L72">      .mensaje(&quot;Parámetro '&quot; + ex.getName() + &quot;' con valor inválido: &quot; + ex.getValue())</span>
 <span class="fc" id="L73">      .timestamp(LocalDateTime.now())</span>
 <span class="fc" id="L74">      .build();</span>
 

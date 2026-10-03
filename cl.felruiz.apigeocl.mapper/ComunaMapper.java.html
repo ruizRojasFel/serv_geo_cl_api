@@ -11,24 +11,14 @@ import cl.felruiz.apigeocl.model.Comuna;
 @Component
 <span class="fc" id="L12">public class ComunaMapper {</span>
 
-  /**
-   * Convierte Comuna (entidad JPA) → ComunaDTO.
-   * Navega las relaciones:
-   * comuna → provincia (para provinciaId y provinciaNombre)
-   * comuna → provincia → region (para regionId y regionNombre)
-   */
   public ComunaDTO toDTO(Comuna comuna) {
-<span class="fc bfc" id="L21" title="All 2 branches covered.">    if (comuna == null) return null;</span>
+<span class="fc bfc" id="L15" title="All 2 branches covered.">    if (comuna == null) return null;</span>
 
-<span class="fc" id="L23">    return ComunaDTO.builder()</span>
-<span class="fc" id="L24">      .id(comuna.getId())</span>
-<span class="fc" id="L25">      .nombre(comuna.getNombre())</span>
-<span class="fc" id="L26">      .codigoCut(comuna.getCodigoCut())</span>
-<span class="fc" id="L27">      .provinciaId(comuna.getProvincia().getId())</span>
-<span class="fc" id="L28">      .provinciaNombre(comuna.getProvincia().getNombre())</span>
-<span class="fc" id="L29">      .regionId(comuna.getProvincia().getRegion().getId())</span>
-<span class="fc" id="L30">      .regionNombre(comuna.getProvincia().getRegion().getNombre())</span>
-<span class="fc" id="L31">      .build();</span>
+<span class="fc" id="L17">    return ComunaDTO.builder()</span>
+<span class="fc" id="L18">      .id(comuna.getId())</span>
+<span class="fc" id="L19">      .nombre(comuna.getNombre())</span>
+<span class="fc" id="L20">      .codigoCut(comuna.getCodigoCut())</span>
+<span class="fc" id="L21">      .build();</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
