@@ -40,13 +40,13 @@ public class DatabaseCreator implements EnvironmentPostProcessor, Ordered {
 
   @Override
   public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-<span class="pc bpc" id="L43" title="1 of 2 branches missed.">    if (!environment.getProperty(&quot;app.database.auto-create&quot;, Boolean.class, true)) {</span>
-<span class="nc" id="L44">      return;</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">    if (!environment.getProperty(&quot;app.database.auto-create&quot;, Boolean.class, true)) {</span>
+<span class="fc" id="L44">      return;</span>
     }
 
 <span class="fc" id="L47">    String url = environment.getProperty(&quot;spring.datasource.url&quot;);</span>
-<span class="pc bpc" id="L48" title="1 of 2 branches missed.">    if (url == null) {</span>
-<span class="nc" id="L49">      return;</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">    if (url == null) {</span>
+<span class="fc" id="L49">      return;</span>
     }
 
 <span class="fc" id="L52">    Matcher matcher = POSTGRES_URL.matcher(url);</span>
@@ -59,42 +59,41 @@ public class DatabaseCreator implements EnvironmentPostProcessor, Ordered {
     String username;
     String password;
     try {
-<span class="nc" id="L62">      username = environment.getProperty(&quot;spring.datasource.username&quot;);</span>
-<span class="nc" id="L63">      password = environment.getProperty(&quot;spring.datasource.password&quot;);</span>
+<span class="fc" id="L62">      username = environment.getProperty(&quot;spring.datasource.username&quot;);</span>
+<span class="fc" id="L63">      password = environment.getProperty(&quot;spring.datasource.password&quot;);</span>
 <span class="fc" id="L64">    } catch (IllegalArgumentException e) {</span>
 <span class="fc" id="L65">      return; // Credenciales sin definir (ej. CI sin .env): nada que crear</span>
-<span class="nc" id="L66">    }</span>
+<span class="fc" id="L66">    }</span>
 
-<span class="nc" id="L68">    try (Connection connection = DriverManager.getConnection(adminUrl, username, password)) {</span>
-<span class="nc bnc" id="L69" title="All 2 branches missed.">      if (exists(connection, dbName)) {</span>
-<span class="nc" id="L70">        return;</span>
+<span class="fc" id="L68">    try (Connection connection = DriverManager.getConnection(adminUrl, username, password)) {</span>
+<span class="fc bfc" id="L69" title="All 2 branches covered.">      if (!exists(connection, dbName)) {</span>
+<span class="fc" id="L70">        try (Statement statement = connection.createStatement()) {</span>
+<span class="fc" id="L71">          statement.executeUpdate(&quot;CREATE DATABASE &quot; + quoteIdentifier(dbName));</span>
+        }
+<span class="fc" id="L73">        log.info(&quot;Base de datos '&quot; + dbName + &quot;' creada&quot;);</span>
       }
-<span class="nc" id="L72">      try (Statement statement = connection.createStatement()) {</span>
-<span class="nc" id="L73">        statement.executeUpdate(&quot;CREATE DATABASE &quot; + quoteIdentifier(dbName));</span>
-      }
-<span class="nc" id="L75">      log.info(&quot;Base de datos '&quot; + dbName + &quot;' creada&quot;);</span>
-<span class="nc bnc" id="L76" title="All 2 branches missed.">    } catch (SQLException e) {</span>
-<span class="nc" id="L77">      log.warn(&quot;No se pudo verificar/crear la base de datos '&quot; + dbName + &quot;': &quot; + e.getMessage());</span>
-<span class="nc" id="L78">    }</span>
-<span class="nc" id="L79">  }</span>
+<span class="fc" id="L75">    } catch (SQLException e) {</span>
+<span class="fc" id="L76">      log.warn(&quot;No se pudo verificar/crear la base de datos '&quot; + dbName + &quot;': &quot; + e.getMessage());</span>
+<span class="fc" id="L77">    }</span>
+<span class="fc" id="L78">  }</span>
 
   private static boolean exists(Connection connection, String dbName) throws SQLException {
-<span class="nc" id="L82">    try (PreparedStatement statement = connection.prepareStatement(&quot;SELECT 1 FROM pg_database WHERE datname = ?&quot;)) {</span>
-<span class="nc" id="L83">      statement.setString(1, dbName);</span>
-<span class="nc" id="L84">      try (ResultSet resultSet = statement.executeQuery()) {</span>
-<span class="nc" id="L85">        return resultSet.next();</span>
+<span class="fc" id="L81">    try (PreparedStatement statement = connection.prepareStatement(&quot;SELECT 1 FROM pg_database WHERE datname = ?&quot;)) {</span>
+<span class="fc" id="L82">      statement.setString(1, dbName);</span>
+<span class="fc" id="L83">      try (ResultSet resultSet = statement.executeQuery()) {</span>
+<span class="fc" id="L84">        return resultSet.next();</span>
       }
     }
   }
 
   private static String quoteIdentifier(String identifier) {
-<span class="nc" id="L91">    return &quot;\&quot;&quot; + identifier.replace(&quot;\&quot;&quot;, &quot;\&quot;\&quot;&quot;) + &quot;\&quot;&quot;;</span>
+<span class="fc" id="L90">    return &quot;\&quot;&quot; + identifier.replace(&quot;\&quot;&quot;, &quot;\&quot;\&quot;&quot;) + &quot;\&quot;&quot;;</span>
   }
 
   /** Después de ConfigDataEnvironmentPostProcessor, para leer application.yaml y .env */
   @Override
   public int getOrder() {
-<span class="fc" id="L97">    return Ordered.LOWEST_PRECEDENCE;</span>
+<span class="fc" id="L96">    return Ordered.LOWEST_PRECEDENCE;</span>
   }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>
