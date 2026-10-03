@@ -5,11 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.List;
 
 /**
  * Entidad que representa una Provincia de Chile.
  * Mapea directamente a la tabla "provincia" en PostgreSQL.
+ * Solo se usa para enlazar comuna → provincia → región.
  */
 @Entity
 @Table(name = "provincia")
@@ -37,10 +37,4 @@ public class Provincia {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "region_id", nullable = false)
   private Region region;
-
-  /**
-   * @OneToMany → una provincia tiene muchas comunas
-   */
-  @OneToMany(mappedBy = "provincia", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private List<Comuna> comunas;
 }

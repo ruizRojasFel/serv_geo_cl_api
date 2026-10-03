@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import cl.felruiz.apigeocl.dto.ErrorDTO;
@@ -51,11 +51,12 @@ class GlobalExceptionHandlerTest {
   }
 
   @Test
-  @DisplayName("handleMissingParam debe retornar 400 con nombre del parámetro")
-  void handleMissingParam_retorna400() {
-    MissingServletRequestParameterException ex = new MissingServletRequestParameterException("nombre", "String");
+  @DisplayName("handleTypeMismatch debe retornar 400 con nombre del parámetro")
+  void handleTypeMismatch_retorna400() {
+    MethodArgumentTypeMismatchException ex =
+        new MethodArgumentTypeMismatchException("abc", Long.class, "id", null, null);
 
-    ResponseEntity<ErrorDTO> response = handler.handleMissingParam(ex);
+    ResponseEntity<ErrorDTO> response = handler.handleTypeMismatch(ex);
 
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 
@@ -63,7 +64,7 @@ class GlobalExceptionHandlerTest {
         .isNotNull()
         .satisfies(body -> {
           assertThat(body.getStatus()).isEqualTo(400);
-          assertThat(body.getMensaje()).contains("nombre");
+          assertThat(body.getMensaje()).contains("id").contains("abc");
         });
   }
 

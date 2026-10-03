@@ -7,7 +7,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -18,7 +17,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import cl.felruiz.apigeocl.dto.ComunaDTO;
-import cl.felruiz.apigeocl.dto.ProvinciaDTO;
 import cl.felruiz.apigeocl.dto.RegionDTO;
 import cl.felruiz.apigeocl.exception.ResourceNotFoundException;
 import cl.felruiz.apigeocl.service.RegionService;
@@ -54,89 +52,40 @@ class RegionControllerTest {
   }
 
   @Test
-  @DisplayName("GET /api/v1/regiones/{id} con ID válido debe retornar 200")
-  void obtenerPorId_conIdValido_retorna200() throws Exception {
+  @DisplayName("GET /api/v1/regiones/{id}/comunas debe retornar 200 con comunas")
+  void obtenerComunas_retorna200ConLista() throws Exception {
     // Arrange
-    RegionDTO region = RegionDTO.builder()
-        .id(1L).numero("VIII").nombre("Biobío").capital("Concepción").build();
-    when(regionService.obtenerPorId(1L)).thenReturn(region);
+    List<ComunaDTO> comunas = List.of(
+        ComunaDTO.builder().id(219L).nombre("Concepción").codigoCut("08101").build());
+    when(regionService.obtenerComunasPorRegion(11L)).thenReturn(comunas);
 
     // Act & Assert
-    mockMvc.perform(get("/api/v1/regiones/1"))
+    mockMvc.perform(get("/api/v1/regiones/11/comunas"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.nombre", is("Biobío")))
-        .andExpect(jsonPath("$.capital", is("Concepción")));
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].nombre", is("Concepción")))
+        .andExpect(jsonPath("$[0].codigoCut", is("08101")));
   }
 
   @Test
-  @DisplayName("GET /api/v1/regiones/{id} con ID inexistente debe retornar 404")
-  void obtenerPorId_conIdInexistente_retorna404() throws Exception {
+  @DisplayName("GET /api/v1/regiones/{id}/comunas con ID inexistente debe retornar 404")
+  void obtenerComunas_conIdInexistente_retorna404() throws Exception {
     // Arrange
-    when(regionService.obtenerPorId(999L))
+    when(regionService.obtenerComunasPorRegion(999L))
         .thenThrow(new ResourceNotFoundException("Región con id 999 no encontrada"));
 
     // Act & Assert
-    mockMvc.perform(get("/api/v1/regiones/999"))
+    mockMvc.perform(get("/api/v1/regiones/999/comunas"))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.status", is(404)))
         .andExpect(jsonPath("$.mensaje", containsString("999")));
   }
 
   @Test
-  @DisplayName("GET /api/v1/regiones/buscar?nombre=nuble debe retornar 200 con resultados")
-  void buscarPorNombre_conNombre_retorna200() throws Exception {
-    // Arrange
-    List<RegionDTO> regiones = List.of(
-        RegionDTO.builder().id(10L).numero("XVI").nombre("Ñuble").capital("Chillán").build());
-    when(regionService.buscarPorNombre("nuble")).thenReturn(regiones);
-
-    // Act & Assert
-    mockMvc.perform(get("/api/v1/regiones/buscar").param("nombre", "nuble"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].nombre", is("Ñuble")));
-  }
-
-  @Test
-  @DisplayName("GET /api/v1/regiones/{id}/provincias debe retornar 200 con provincias")
-  void obtenerProvincias_retorna200ConLista() throws Exception {
-    List<ProvinciaDTO> provincias = List.of(
-        ProvinciaDTO.builder()
-            .id(38L).nombre("Concepción").capital("Concepción")
-            .regionId(11L).regionNombre("Biobío").build());
-    when(regionService.obtenerProvinciasPorRegion(11L)).thenReturn(provincias);
-
-    mockMvc.perform(get("/api/v1/regiones/11/provincias"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].nombre", is("Concepción")));
-  }
-
-  @Test
-  @DisplayName("GET /api/v1/regiones/comunas?nombre debe retornar 200")
-  void obtenerComunasPorNombreRegion_retorna200() throws Exception {
-    // Arrange
-    ComunaDTO comunaDTO = ComunaDTO.builder()
-        .id(1L)
-        .nombre("Concepción") // o el nombre que quieras para el test
-        .build();
-
-    when(regionService.obtenerComunasPorNombreRegion(any()))
-        .thenReturn(List.of(comunaDTO));
-
-    // Act & Assert
-    mockMvc.perform(get("/api/v1/regiones/comunas")
-        .param("nombre", "Biobío"))
-        .andExpect(status().isOk())
-        // Opcional: puedes agregar verificaciones JSON aquí como en tus otros tests
-        .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].nombre", is("Concepción")));
-  }
-
-  @Test
-  @DisplayName("GET /api/v1/regiones/comunas sin nombre debe retornar 400")
-  void obtenerComunasPorNombreRegion_sinNombre_retorna400() throws Exception {
-    mockMvc.perform(get("/api/v1/regiones/comunas"))
-        .andExpect(status().isBadRequest());
+  @DisplayName("GET /api/v1/regiones/{id}/comunas con ID no numérico debe retornar 400")
+  void obtenerComunas_conIdInvalido_retorna400() throws Exception {
+    mockMvc.perform(get("/api/v1/regiones/abc/comunas"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status", is(400)));
   }
 }

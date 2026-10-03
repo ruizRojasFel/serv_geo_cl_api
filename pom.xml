@@ -13,7 +13,7 @@
     <artifactId>api-geo-cl</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>api-geo-cl</name>
-    <description>REST API with geopolitical data of Chile (regions, provinces, communes)</description>
+    <description>REST API with geopolitical data of Chile (regions and their communes)</description>
 
     <properties>
         <java.version>17</java.version>

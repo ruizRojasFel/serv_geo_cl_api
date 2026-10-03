@@ -11,12 +11,6 @@ import cl.felruiz.apigeocl.model.Comuna;
 @Component
 public class ComunaMapper {
 
-  /**
-   * Convierte Comuna (entidad JPA) → ComunaDTO.
-   * Navega las relaciones:
-   * comuna → provincia (para provinciaId y provinciaNombre)
-   * comuna → provincia → region (para regionId y regionNombre)
-   */
   public ComunaDTO toDTO(Comuna comuna) {
     if (comuna == null) return null;
 
@@ -24,10 +18,6 @@ public class ComunaMapper {
       .id(comuna.getId())
       .nombre(comuna.getNombre())
       .codigoCut(comuna.getCodigoCut())
-      .provinciaId(comuna.getProvincia().getId())
-      .provinciaNombre(comuna.getProvincia().getNombre())
-      .regionId(comuna.getProvincia().getRegion().getId())
-      .regionNombre(comuna.getProvincia().getRegion().getNombre())
       .build();
   }
 }

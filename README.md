@@ -2,7 +2,7 @@
 
 <h1> 🇨🇱 API GEO CL </h1>
 
-*API REST en Spring Boot con datos geopolíticos de Chile: **regiones, provincias y comunas**.*
+*API REST en Spring Boot con datos geopolíticos de Chile: **regiones y sus comunas**.*
 
 [![Website](https://img.shields.io/badge/ver_sitio-mymicroservicesfel.vercel.app-lightblue)](https://mymicroservicesfel.vercel.app/) [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/ruizRojasFel/serv_geo_cl_api?tab=MIT-1-ov-file)
 
@@ -12,7 +12,7 @@
 
 ## Descripción
 
-Expone la división político-administrativa de Chile a través de endpoints REST, permitiendo consultar la jerarquía completa desde cada región hasta sus comunas. Pensada para alimentar formularios, selectores en cascada y validaciones de dirección en aplicaciones web o móviles. Los datos se almacenan en PostgreSQL y la API se documenta con Swagger/OpenAPI.
+Expone las regiones de Chile y las comunas de cada región a través de endpoints REST. Pensada para alimentar selectores en cascada (región → comuna) en formularios web o móviles. Los datos se almacenan en PostgreSQL y la API se documenta con Swagger/OpenAPI.
 
 ## Stack
 
@@ -26,40 +26,24 @@ Expone la división político-administrativa de Chile a través de endpoints RES
 
 ## Qué incluye hoy
 
-- Endpoints REST bajo `/api/v1`
-- Búsquedas por nombre con normalización (sin tildes, case-insensitive, espacios normalizados, soporte para `ñ`)
-- Relaciones navegables:
-  - región → provincias
-  - provincia → comunas
-  - región → comunas (por nombre de región)
+- Endpoints REST bajo `/api/v1` para selectores en cascada región → comunas
 - Manejo global de errores en JSON
 - Esquema y datos versionados con Flyway (`src/main/resources/db/migration`):
   - 16 regiones
-  - 56 provincias
+  - 56 provincias (usadas internamente para enlazar comuna → región)
   - 346 comunas
 
 ## Endpoints
 
-| Recurso | Método | Ruta | Descripción |
-|---|---|---|---|
-| Regiones | GET | `/api/v1/regiones` | Lista todas las regiones |
-| Regiones | GET | `/api/v1/regiones/{id}` | Obtiene una región por ID |
-| Regiones | GET | `/api/v1/regiones/buscar?nombre=...` | Busca regiones por nombre |
-| Regiones | GET | `/api/v1/regiones/{id}/provincias` | Lista provincias de una región |
-| Regiones | GET | `/api/v1/regiones/comunas?nombre=...` | Lista comunas de una región por nombre |
-| Provincias | GET | `/api/v1/provincias` | Lista todas las provincias |
-| Provincias | GET | `/api/v1/provincias/{id}` | Obtiene una provincia por ID |
-| Provincias | GET | `/api/v1/provincias/buscar?nombre=...` | Busca provincias por nombre |
-| Provincias | GET | `/api/v1/provincias/{id}/comunas` | Lista comunas de una provincia |
-| Comunas | GET | `/api/v1/comunas` | Lista todas las comunas |
-| Comunas | GET | `/api/v1/comunas/{id}` | Obtiene una comuna por ID |
-| Comunas | GET | `/api/v1/comunas/buscar?nombre=...` | Busca comunas por nombre |
+| Método | Ruta | Descripción |
+|---|---|---|
+| GET | `/api/v1/regiones` | Lista todas las regiones |
+| GET | `/api/v1/regiones/{id}/comunas` | Lista las comunas de una región (ordenadas por nombre) |
 
 ## Respuestas
 
 - `RegionDTO`: `id`, `numero`, `nombre`, `capital`
-- `ProvinciaDTO`: `id`, `nombre`, `capital`, `regionId`, `regionNombre`
-- `ComunaDTO`: `id`, `nombre`, `codigoCut`, `provinciaId`, `provinciaNombre`, `regionId`, `regionNombre`
+- `ComunaDTO`: `id`, `nombre`, `codigoCut`
 
 Ejemplo de error:
 

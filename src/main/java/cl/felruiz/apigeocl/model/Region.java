@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.List;
 
 /**
  * Entidad que representa una Región de Chile. Mapea directamente a la tabla
@@ -31,7 +30,4 @@ public class Region {
 
     @Column(nullable = false, length = 100)
     private String capital;     // Ej: "Santiago"
-
-    @OneToMany(mappedBy = "region", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Provincia> provincias;
 }

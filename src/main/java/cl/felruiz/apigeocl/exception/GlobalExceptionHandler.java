@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import cl.felruiz.apigeocl.dto.ErrorDTO;
@@ -24,7 +24,7 @@ import cl.felruiz.apigeocl.dto.ErrorDTO;
  * Orden de los handlers:
  *   1. handleNotFound      → 404 (recurso no encontrado)
  *   2. handleNoResource    → 404 (ruta inexistente)
- *   3. handleMissingParam  → 400 (parámetro requerido faltante)
+ *   3. handleTypeMismatch  → 400 (parámetro con tipo inválido, ej. id no numérico)
  *   4. handleGeneral       → 500 (cualquier otro error no controlado)
  */
 @RestControllerAdvice
@@ -62,14 +62,14 @@ public class GlobalExceptionHandler {
   }
 
   /**
-   * Captura parámetros requeridos faltantes → devuelve HTTP 400.
+   * Captura parámetros con tipo inválido (ej. "/api/v1/regiones/abc/comunas") → devuelve HTTP 400.
    */
-  @ExceptionHandler(MissingServletRequestParameterException.class)
-  public ResponseEntity<ErrorDTO> handleMissingParam(MissingServletRequestParameterException ex) {
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<ErrorDTO> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
     ErrorDTO error = ErrorDTO.builder()
       .status(HttpStatus.BAD_REQUEST.value())
       .error("Bad Request")
-      .mensaje("Parámetro requerido '" + ex.getParameterName() + "' no encontrado")
+      .mensaje("Parámetro '" + ex.getName() + "' con valor inválido: " + ex.getValue())
       .timestamp(LocalDateTime.now())
       .build();
 
